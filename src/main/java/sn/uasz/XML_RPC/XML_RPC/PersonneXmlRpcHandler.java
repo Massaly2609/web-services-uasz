@@ -38,7 +38,7 @@ public class PersonneXmlRpcHandler {
         return service.ajouter(personne).getId();
     }
 
-    // READ : rechercher une personne
+// READ : rechercher une personne
     public Map<String, Object> rechercher(int id) {
 
         Personne p = service.rechercher((long) id);
