@@ -1,0 +1,586 @@
+{
+  "info": {
+    "_postman_id": "ec8f63fb-2a76-48b8-9a6e-304eb9220544",
+    "name": "JSON-RPC 2.0 — Gestion des Personnes",
+    "description": "Tests du service JSON-RPC 2.0 (contrôleur Spring `JsonRpcController`).\n\n* Serveur : `http://localhost:8082/jsonrpc`\n* Toutes les requêtes sont des `POST` `application/json` : `{ jsonrpc, method, params, id }`\n* Les paramètres sont **nommés** (objet JSON)\n\nLancer le dossier **1. Scénario CRUD** avec le *Collection Runner* : `Ajouter` mémorise l'identifiant créé dans la variable `personneId`.\n\n⚠️ Le document de TP contient une coquille dans *Modifier* (`dateNaissancee`) : elle provoque l'erreur -32602, reproduite dans le dossier 2.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Scénario CRUD",
+      "item": [
+        {
+          "name": "Ajouter une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('jsonrpc = 2.0', () => pm.expect(res.jsonrpc).to.eql('2.0'));",
+                  "pm.test('Pas de champ error', () => pm.expect(res).to.not.have.property('error'));",
+                  "pm.test('Même id que la requête', () => pm.expect(res.id).to.eql(JSON.parse(pm.request.body.raw).id));",
+                  "pm.test('result est un identifiant', () => pm.expect(res.result).to.be.a('number'));",
+                  "pm.collectionVariables.set('personneId', res.result);",
+                  "console.log('personneId =', res.result);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.ajouter\",\n    \"params\": {\n        \"nom\": \"DIOP\",\n        \"prenom\": \"Amadou\",\n        \"dateNaissance\": \"2000-05-15\",\n        \"adresse\": \"Ziguinchor\",\n        \"telephone\": \"771234567\"\n    },\n    \"id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Personne.ajouter → result : id (number)"
+          }
+        },
+        {
+          "name": "Lister les personnes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('jsonrpc = 2.0', () => pm.expect(res.jsonrpc).to.eql('2.0'));",
+                  "pm.test('Pas de champ error', () => pm.expect(res).to.not.have.property('error'));",
+                  "pm.test('Même id que la requête', () => pm.expect(res.id).to.eql(JSON.parse(pm.request.body.raw).id));",
+                  "pm.test('result est un tableau', () => pm.expect(res.result).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.lister\",\n    \"params\": {},\n    \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Personne.lister → result : Personne[]"
+          }
+        },
+        {
+          "name": "Rechercher une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('jsonrpc = 2.0', () => pm.expect(res.jsonrpc).to.eql('2.0'));",
+                  "pm.test('Pas de champ error', () => pm.expect(res).to.not.have.property('error'));",
+                  "pm.test('Même id que la requête', () => pm.expect(res.id).to.eql(JSON.parse(pm.request.body.raw).id));",
+                  "pm.test('Personne trouvée', () => pm.expect(res.result.nom).to.eql('DIOP'));",
+                  "pm.test('Date au format ISO', () => pm.expect(res.result.dateNaissance).to.match(/^\\d{4}-\\d{2}-\\d{2}$/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.rechercher\",\n    \"params\": {\n        \"id\": {{personneId}}\n    },\n    \"id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Personne.rechercher → result : Personne"
+          }
+        },
+        {
+          "name": "Modifier une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('jsonrpc = 2.0', () => pm.expect(res.jsonrpc).to.eql('2.0'));",
+                  "pm.test('Pas de champ error', () => pm.expect(res).to.not.have.property('error'));",
+                  "pm.test('Même id que la requête', () => pm.expect(res.id).to.eql(JSON.parse(pm.request.body.raw).id));",
+                  "pm.test('result = true', () => pm.expect(res.result).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.modifier\",\n    \"params\": {\n        \"id\": {{personneId}},\n        \"nom\": \"DIOP\",\n        \"prenom\": \"Amadou\",\n        \"dateNaissance\": \"2000-05-15\",\n        \"adresse\": \"Dakar\",\n        \"telephone\": \"779876543\"\n    },\n    \"id\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Personne.modifier → result : true (version corrigée : dateNaissance)"
+          }
+        },
+        {
+          "name": "Vérifier la modification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('jsonrpc = 2.0', () => pm.expect(res.jsonrpc).to.eql('2.0'));",
+                  "pm.test('Pas de champ error', () => pm.expect(res).to.not.have.property('error'));",
+                  "pm.test('Même id que la requête', () => pm.expect(res.id).to.eql(JSON.parse(pm.request.body.raw).id));",
+                  "pm.test('adresse = Dakar', () => pm.expect(res.result.adresse).to.eql('Dakar'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.rechercher\",\n    \"params\": {\n        \"id\": {{personneId}}\n    },\n    \"id\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Relit la personne : l'adresse doit valoir Dakar."
+          }
+        },
+        {
+          "name": "Supprimer une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('jsonrpc = 2.0', () => pm.expect(res.jsonrpc).to.eql('2.0'));",
+                  "pm.test('Pas de champ error', () => pm.expect(res).to.not.have.property('error'));",
+                  "pm.test('Même id que la requête', () => pm.expect(res.id).to.eql(JSON.parse(pm.request.body.raw).id));",
+                  "pm.test('result = true', () => pm.expect(res.result).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.supprimer\",\n    \"params\": {\n        \"id\": {{personneId}}\n    },\n    \"id\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Personne.supprimer → result : true"
+          }
+        },
+        {
+          "name": "Rechercher après suppression (-32602)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (erreur dans le corps)', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('error.code = -32602', () => pm.expect(res.error.code).to.eql(-32602));",
+                  "console.log('error.message :', res.error.message);",
+                  "pm.test('Personne introuvable', () => pm.expect(res.error.message).to.include('introuvable'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.rechercher\",\n    \"params\": {\n        \"id\": {{personneId}}\n    },\n    \"id\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Une personne inexistante renvoie l'erreur -32602 « Personne introuvable »."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Codes d'erreur JSON-RPC",
+      "item": [
+        {
+          "name": "-32600 Invalid Request (version 1.0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (erreur dans le corps)', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('error.code = -32600', () => pm.expect(res.error.code).to.eql(-32600));",
+                  "console.log('error.message :', res.error.message);",
+                  "pm.test('id = null', () => pm.expect(res.id).to.eql(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"1.0\",\n    \"method\": \"Personne.lister\",\n    \"id\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "jsonrpc doit valoir \"2.0\" : sinon -32600 et id null."
+          }
+        },
+        {
+          "name": "-32601 Method not found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (erreur dans le corps)', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('error.code = -32601', () => pm.expect(res.error.code).to.eql(-32601));",
+                  "console.log('error.message :', res.error.message);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.inconnue\",\n    \"params\": {},\n    \"id\": 9\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "La méthode n'existe pas."
+          }
+        },
+        {
+          "name": "-32602 Invalid params (coquille du TP : dateNaissancee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (erreur dans le corps)', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('error.code = -32602', () => pm.expect(res.error.code).to.eql(-32602));",
+                  "console.log('error.message :', res.error.message);",
+                  "pm.test('Champ dateNaissance signalé', () => pm.expect(res.error.message).to.include('dateNaissance'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.modifier\",\n    \"params\": {\n        \"id\": {{personneId}},\n        \"nom\": \"DIOP\",\n        \"prenom\": \"Amadou\",\n        \"dateNaissancee\": \"2000-05-15\",\n        \"adresse\": \"Dakar\",\n        \"telephone\": \"779876543\"\n    },\n    \"id\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Reproduit l'exemple « Modifier » du document de TP, qui contient la clé dateNaissancee."
+          }
+        },
+        {
+          "name": "-32603 Internal error (date 15/05/2000)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (erreur dans le corps)', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('error.code = -32603', () => pm.expect(res.error.code).to.eql(-32603));",
+                  "console.log('error.message :', res.error.message);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"Personne.ajouter\",\n    \"params\": {\n        \"nom\": \"DIOP\",\n        \"prenom\": \"Amadou\",\n        \"dateNaissance\": \"15/05/2000\",\n        \"adresse\": \"Ziguinchor\",\n        \"telephone\": \"771234567\"\n    },\n    \"id\": 11\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "LocalDate.parse lève DateTimeParseException → capturée en -32603."
+          }
+        },
+        {
+          "name": "JSON invalide (HTTP 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Spring rejette le corps : HTTP 400', () => pm.response.to.have.status(400));",
+                  "// La spécification JSON-RPC prévoit -32700 « Parse error » : piste d'amélioration du serveur."
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"jsonrpc\": \"2.0\", \"method\": \"Personne.lister\", ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jsonrpc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jsonrpc"
+              ]
+            },
+            "description": "Corps JSON tronqué : Spring renvoie HTTP 400 avant d'atteindre le contrôleur (la spec prévoit -32700)."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "personneId",
+      "value": "1"
+    }
+  ]
+}
