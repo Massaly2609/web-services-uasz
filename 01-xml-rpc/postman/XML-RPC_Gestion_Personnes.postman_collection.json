@@ -1,0 +1,477 @@
+{
+  "info": {
+    "_postman_id": "6a03d0fe-4bc3-4c8a-a758-ce171dd303fa",
+    "name": "XML-RPC — Gestion des Personnes",
+    "description": "Tests du service XML-RPC (Apache XML-RPC 3.1.3 dans Spring Boot).\n\n* Serveur : `http://localhost:8081` (port ouvert par `XmlRpcConfig`)\n* Toutes les requêtes sont des `POST` `text/xml` contenant un `<methodCall>`\n* Le handler est enregistré sous le nom `Personne` → `Personne.ajouter`, `Personne.lister`, …\n* Les paramètres sont **positionnels** (l'ordre compte)\n\nLancer le dossier **1. Scénario CRUD** avec le *Collection Runner* : `Ajouter` mémorise l'identifiant créé dans la variable `personneId`, réutilisée par les requêtes suivantes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Scénario CRUD",
+      "item": [
+        {
+          "name": "Ajouter une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "const id = pm.response.text().match(/<(?:ex:)?i[48]>(\\d+)<\\/(?:ex:)?i[48]>|<int>(\\d+)<\\/int>/);",
+                  "pm.test('Un identifiant est renvoyé', () => pm.expect(id).to.not.be.null);",
+                  "pm.collectionVariables.set('personneId', id[1] || id[2]);",
+                  "console.log('personneId =', pm.collectionVariables.get('personneId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.ajouter</methodName>\n    <params>\n        <param>\n            <value><string>DIOP</string></value>\n        </param>\n        <param>\n            <value><string>Amadou</string></value>\n        </param>\n        <param>\n            <value><string>2000-05-15</string></value>\n        </param>\n        <param>\n            <value><string>Ziguinchor</string></value>\n        </param>\n        <param>\n            <value><string>771234567</string></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Personne.ajouter(string nom, string prenom, string dateNaissance, string adresse, string telephone) → i8 (id)"
+          }
+        },
+        {
+          "name": "Lister les personnes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "pm.test('Un <array> est renvoyé', () => pm.expect(pm.response.text()).to.include('<array>'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.lister</methodName>\n    <params/>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Personne.lister() → array<struct>"
+          }
+        },
+        {
+          "name": "Rechercher une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "pm.test('La struct contient le nom DIOP', () => pm.expect(pm.response.text()).to.match(/<name>nom<\\/name><value>(<string>)?DIOP/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.rechercher</methodName>\n    <params>\n        <param>\n            <value><int>{{personneId}}</int></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Personne.rechercher(int id) → struct"
+          }
+        },
+        {
+          "name": "Modifier une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "pm.test('Renvoie true', () => pm.expect(pm.response.text()).to.include('<boolean>1</boolean>'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.modifier</methodName>\n    <params>\n        <param>\n            <value><int>{{personneId}}</int></value>\n        </param>\n        <param>\n            <value><string>DIOP</string></value>\n        </param>\n        <param>\n            <value><string>Amadou</string></value>\n        </param>\n        <param>\n            <value><string>2000-05-15</string></value>\n        </param>\n        <param>\n            <value><string>Dakar</string></value>\n        </param>\n        <param>\n            <value><string>779876543</string></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Personne.modifier(int id, string nom, string prenom, string dateNaissance, string adresse, string telephone) → boolean"
+          }
+        },
+        {
+          "name": "Vérifier la modification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "pm.test('Adresse = Dakar', () => pm.expect(pm.response.text()).to.match(/<name>adresse<\\/name><value>(<string>)?Dakar/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.rechercher</methodName>\n    <params>\n        <param>\n            <value><int>{{personneId}}</int></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Relit la personne : l'adresse doit maintenant valoir Dakar."
+          }
+        },
+        {
+          "name": "Supprimer une personne",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "pm.test('Renvoie true', () => pm.expect(pm.response.text()).to.include('<boolean>1</boolean>'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.supprimer</methodName>\n    <params>\n        <param>\n            <value><int>{{personneId}}</int></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Personne.supprimer(int id) → boolean"
+          }
+        },
+        {
+          "name": "Rechercher après suppression",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pas de <fault>', () => pm.expect(pm.response.text()).to.not.include('<fault>'));",
+                  "pm.test('Struct vide', () => pm.expect(pm.response.text()).to.include('<struct/>'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.rechercher</methodName>\n    <params>\n        <param>\n            <value><int>{{personneId}}</int></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Une personne inexistante renvoie une struct vide (et non une fault)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cas d'erreur (fault)",
+      "item": [
+        {
+          "name": "Méthode inconnue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (les erreurs XML-RPC passent dans le corps)', () => pm.response.to.have.status(200));",
+                  "pm.test('Réponse <fault>', () => pm.expect(pm.response.text()).to.include('<fault>'));",
+                  "const m = pm.response.text().match(/<name>faultString<\\/name><value>(?:<string>)?([^<]*)/);",
+                  "if (m) console.log('faultString :', m[1]);",
+                  "pm.test('No such handler', () => pm.expect(pm.response.text()).to.include('No such handler'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.inconnue</methodName>\n    <params/>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Le serveur renvoie une <fault> « No such handler »."
+          }
+        },
+        {
+          "name": "Date de naissance invalide",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (les erreurs XML-RPC passent dans le corps)', () => pm.response.to.have.status(200));",
+                  "pm.test('Réponse <fault>', () => pm.expect(pm.response.text()).to.include('<fault>'));",
+                  "const m = pm.response.text().match(/<name>faultString<\\/name><value>(?:<string>)?([^<]*)/);",
+                  "if (m) console.log('faultString :', m[1]);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.ajouter</methodName>\n    <params>\n        <param>\n            <value><string>FALL</string></value>\n        </param>\n        <param>\n            <value><string>Awa</string></value>\n        </param>\n        <param>\n            <value><string>15/05/2000</string></value>\n        </param>\n        <param>\n            <value><string>Thiès</string></value>\n        </param>\n        <param>\n            <value><string>781112233</string></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "LocalDate.parse échoue sur 15/05/2000 → <fault>. Format attendu : yyyy-MM-dd."
+          }
+        },
+        {
+          "name": "Mauvais nombre de paramètres",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 (les erreurs XML-RPC passent dans le corps)', () => pm.response.to.have.status(200));",
+                  "pm.test('Réponse <fault>', () => pm.expect(pm.response.text()).to.include('<fault>'));",
+                  "const m = pm.response.text().match(/<name>faultString<\\/name><value>(?:<string>)?([^<]*)/);",
+                  "if (m) console.log('faultString :', m[1]);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\"?>\n<methodCall>\n    <methodName>Personne.ajouter</methodName>\n    <params>\n        <param>\n            <value><string>FALL</string></value>\n        </param>\n        <param>\n            <value><string>Awa</string></value>\n        </param>\n    </params>\n</methodCall>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/RPC2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "RPC2"
+              ]
+            },
+            "description": "Les paramètres XML-RPC sont positionnels : aucune méthode ajouter(String, String) n'existe."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "personneId",
+      "value": "1"
+    }
+  ]
+}
