@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend · ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [01-xml-rpc, 02-json-rpc]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Compilation et tests
+        run: ./mvnw -B verify
+
+  frontend:
+    name: Frontend · ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [01-xml-rpc, 02-json-rpc]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/frontend/package-lock.json
+      - name: Installation
+        run: npm ci
+      - name: Vérification des types et build
+        run: npm run build
