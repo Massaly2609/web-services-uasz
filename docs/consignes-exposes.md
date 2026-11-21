@@ -26,7 +26,7 @@ Chaque étudiant doit faire ce travail pour l’exposé de chaque groupe, y comp
 | ------------- | ------------------------------- |
 | XML-RPC       | [`01-xml-rpc`](../01-xml-rpc/)   |
 | JSON-RPC      | [`02-json-rpc`](../02-json-rpc/) |
-| gRPC          | [`03-grpc`](../03-grpc/)         |
+| gRPC          | [`03-grpc`](../03-grpc/) — exposé de Medoune MASSALY & Alioune DIOUF |
 | SOAP          | à venir                         |
 | REST          | à venir                         |
 | GraphQL       | à venir                         |

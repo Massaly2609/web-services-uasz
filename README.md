@@ -11,7 +11,7 @@ pour comparer les approches.
 | --- | ---------------------------- | ------------------------------------------------ | ----------------------- | ------- | ---------------------- |
 | 01  | [XML-RPC](01-xml-rpc/)       | Spring Boot 4 + Apache XML-RPC 3.1.3 (port 8081) | React 19 + TypeScript   | ✅      | ✅ Terminé             |
 | 02  | [JSON-RPC 2.0](02-json-rpc/) | Spring Boot 4, contrôleur `/jsonrpc` (port 8082) | Vue 3 + TypeScript      | ✅      | ✅ Terminé             |
-| 03  | [gRPC](03-grpc/)             | _en préparation_                                 | _Angular (prévu)_       | —       | 🚧 Exposé le 9 décembre |
+| 03  | [gRPC](03-grpc/)             | Spring Boot 4 + Armeria (gRPC + gRPC-Web, port 9090) | Angular 21 + Connect-ES | ✅ ([énoncé du TP](03-grpc/docs/TP_gRPC.md)) | ✅ Exposé le 9 décembre |
 
 Les autres exposés du calendrier (SOAP, REST, GraphQL, WebSocket, WebHook, Apache Kafka, RabbitMQ)
 seront ajoutés au fil des présentations des groupes, avec la même structure.
@@ -30,7 +30,12 @@ web-services-uasz/
 │   ├── frontend/    # client Vue 3 + TypeScript (Vite)
 │   ├── postman/
 │   └── README.md
-├── 03-grpc/         # exposé du binôme (en cours)
+├── 03-grpc/
+│   ├── proto/       # personne.proto — contrat partagé (IDL)
+│   ├── backend/     # Spring Boot + Armeria — serveur gRPC / gRPC-Web
+│   ├── frontend/    # client Angular (Connect-ES, gRPC-Web)
+│   ├── docs/        # énoncé du TP pour les autres groupes
+│   └── README.md
 ├── docs/            # consignes des exposés
 └── .github/workflows/ci.yml   # build des backends et des frontends à chaque push
 ```
@@ -62,6 +67,8 @@ npm run dev
 | Serveur JSON-RPC             | `http://localhost:8082/jsonrpc`          |
 | Client XML-RPC (React)       | `http://localhost:5173`                  |
 | Client JSON-RPC (Vue)        | `http://localhost:5174`                  |
+| Serveur gRPC (+ gRPC-Web)    | `localhost:9090` — page de test `http://localhost:9090/docs` |
+| Client gRPC (Angular)        | `http://localhost:4200`                  |
 | Consoles H2                  | `http://localhost:8080/h2` (XML-RPC), `http://localhost:8082/h2` (JSON-RPC) |
 
 Les bases H2 sont **en mémoire** : elles repartent à zéro à chaque redémarrage d’un backend.
@@ -77,19 +84,21 @@ Les bases H2 sont **en mémoire** : elles repartent à zéro à chaque redémarr
 | `adresse`       | `String`    | `Ziguinchor`  |
 | `telephone`     | `String`    | `771234567`   |
 
-## XML-RPC et JSON-RPC en un coup d’œil
+## Comparatif
 
-|                    | XML-RPC                                   | JSON-RPC 2.0                                         |
-| ------------------ | ----------------------------------------- | ---------------------------------------------------- |
-| Format             | XML (`<methodCall>`)                      | JSON (`{ jsonrpc, method, params, id }`)             |
-| Paramètres         | positionnels                              | nommés (objet) ou positionnels (tableau)             |
-| Erreurs            | `<fault>` avec `faultCode` / `faultString` | `error` avec codes normalisés (-32700 … -32603)      |
-| Corrélation        | aucune (une requête = une réponse HTTP)   | champ `id` renvoyé par le serveur                    |
-| Taille des messages | verbeuse                                 | compacte                                             |
-| IDL                | aucun                                     | aucun imposé (OpenRPC / JSON Schema possibles)       |
+|                     | XML-RPC                                    | JSON-RPC 2.0                                    | gRPC                                                   |
+| ------------------- | ------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------ |
+| Format              | XML (`<methodCall>`)                       | JSON (`{ jsonrpc, method, params, id }`)        | Protocol Buffers (binaire)                             |
+| Transport           | HTTP/1.x POST                              | HTTP POST (ou autre)                            | HTTP/2 (gRPC-Web pour les navigateurs)                 |
+| Paramètres          | positionnels                               | nommés (objet) ou positionnels (tableau)        | un message typé par méthode                            |
+| Erreurs             | `<fault>` avec `faultCode` / `faultString` | `error` avec codes normalisés (-32700 … -32603) | statuts gRPC (`NOT_FOUND`, `INVALID_ARGUMENT`…)        |
+| Streaming           | non                                        | non                                             | serveur, client et bidirectionnel                      |
+| IDL / contrat       | aucun                                      | aucun imposé (OpenRPC / JSON Schema possibles)  | `.proto` obligatoire, génération de code               |
+| Taille des messages | verbeuse                                   | compacte                                        | très compacte (ex. 2 octets contre 10 en JSON)         |
+| Lisible à l’œil nu  | oui                                        | oui                                             | non (outils nécessaires)                               |
 
-Les deux clients web affichent les messages réellement échangés (console XML, playground et inspecteur JSON) :
-c’est le support de démonstration des exposés.
+Les trois clients web affichent les messages réellement échangés (console XML, inspecteur JSON,
+laboratoire Protobuf) : c’est le support de démonstration des exposés.
 
 ## Auteurs
 

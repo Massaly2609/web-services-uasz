@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [01-xml-rpc, 02-json-rpc]
+        project: [01-xml-rpc, 02-json-rpc, 03-grpc]
     defaults:
       run:
         working-directory: ${{ matrix.project }}/backend
@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [01-xml-rpc, 02-json-rpc]
+        project: [01-xml-rpc, 02-json-rpc, 03-grpc]
     defaults:
       run:
         working-directory: ${{ matrix.project }}/frontend
