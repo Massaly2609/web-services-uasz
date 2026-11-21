@@ -1,0 +1,80 @@
+<section class="page narrow">
+  <header class="page-head">
+    <div>
+      <div class="kicker">rpc Rechercher(RechercherRequest) → Personne</div>
+      <h1>Recherche par identifiant</h1>
+      <p class="lead">Si l’id n’existe pas, le serveur ne renvoie pas un objet vide : il termine l’appel avec le statut <code>NOT_FOUND</code>.</p>
+    </div>
+  </header>
+
+  <form class="lookup card" (submit)="$event.preventDefault(); run(value())">
+    <div class="lookup-field">
+      <span class="lookup-prefix">id:</span>
+      <input inputmode="numeric" [value]="value()" (input)="onInput($event)"
+             placeholder="1" aria-label="Identifiant" autofocus />
+      <button class="btn primary" [disabled]="busy() || !value()">
+        @if (busy()) { <span class="spinner"></span> } Rechercher()
+      </button>
+    </div>
+    <div class="chips">
+      <span class="muted">Essayer :</span>
+      @for (p of shortcuts(); track p.id) {
+        <button type="button" class="chip" (click)="run(p.id)">{{ p.id }} · {{ p.prenom }}</button>
+      }
+      <button type="button" class="chip is-warn" (click)="run('9999')">9999 · inexistant</button>
+    </div>
+  </form>
+
+  @if (result(); as r) {
+    @if (r.state === 'found') {
+      <article class="card profile">
+        <div class="profile-band"></div>
+        <div class="profile-row">
+          <app-avatar [nom]="r.p.nom" [prenom]="r.p.prenom" [size]="76" />
+          <div class="profile-name">
+            <span class="tag">id: {{ r.p.id }}</span>
+            <h2>{{ name(r.p) }}</h2>
+          </div>
+          <div class="profile-actions">
+            <button class="btn" (click)="ui.openEdit(r.p)">Modifier</button>
+            <button class="btn danger-ghost" (click)="ui.toDelete.set(r.p)">Supprimer</button>
+          </div>
+        </div>
+        <dl class="profile-facts">
+          <div><dt>Naissance</dt><dd>{{ date(r.p.dateNaissance) }} <span class="muted">· {{ age(r.p.dateNaissance) }} ans</span></dd></div>
+          <div><dt>Adresse</dt><dd>{{ r.p.adresse }}</dd></div>
+          <div><dt>Téléphone</dt><dd class="mono">{{ phone(r.p.telephone) }}</dd></div>
+        </dl>
+      </article>
+    } @else if (r.state === 'missing') {
+      <div class="empty card">
+        <div class="empty-mark">404</div>
+        <h3>Aucune personne avec l’id {{ r.id }}</h3>
+        <p>Statut gRPC reçu : <code>NOT_FOUND (5)</code> — message : « Aucune personne avec l'id {{ r.id }} ».</p>
+      </div>
+    }
+  }
+
+  @if (last(); as c) {
+    <section class="exchange">
+      <div class="code-card">
+        <div class="code-head"><span>→ RechercherRequest</span><span>{{ c.request.protoBytes.length }} octets</span></div>
+        <pre class="code">{{ c.request.json }}</pre>
+        <div class="bytes">{{ hex(c.request.protoBytes) || '(message vide)' }}</div>
+      </div>
+      <div class="code-card">
+        <div class="code-head">
+          <span>← {{ c.status === 'OK' ? 'Personne' : 'statut ' + c.status }}</span>
+          <span>{{ c.response ? c.response.protoBytes.length + ' octets · ' : '' }}{{ c.ms }} ms</span>
+        </div>
+        @if (c.response) {
+          <pre class="code">{{ c.response.json }}</pre>
+          <div class="bytes">{{ hex(c.response.protoBytes) }}</div>
+        } @else {
+          <pre class="code is-error">grpc-status: {{ c.statusCode }} ({{ c.status }})
+grpc-message: {{ c.message }}</pre>
+        }
+      </div>
+    </section>
+  }
+</section>

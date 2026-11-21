@@ -1,0 +1,136 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <div class="kicker">Laboratoire</div>
+      <h1>Sur le fil : Protobuf vs JSON</h1>
+      <p class="lead">
+        Écrivez un message en JSON : il est converti en Protobuf binaire grâce au schéma généré depuis
+        <code>personne.proto</code>, puis envoyé en gRPC-Web. Comparez la taille réellement transmise.
+      </p>
+    </div>
+  </header>
+
+  <div class="labo">
+    <!-- Composer -->
+    <div class="card composer">
+      <div class="card-head">
+        <h3>Requête</h3>
+        <code class="sig">{{ signature() }}</code>
+      </div>
+      <div class="chips">
+        @for (ex of examples; track ex.label) {
+          <button class="chip" [class.is-warn]="ex.error" [class.is-active]="!ex.error && method() === ex.name" (click)="load(ex)">
+            {{ ex.label }}
+          </button>
+        }
+      </div>
+      <textarea class="json-editor" spellcheck="false" wrap="off" [value]="source()"
+                (input)="source.set(value($event))" (keydown)="onKey($event)" aria-label="Message JSON"></textarea>
+      @if (parseError(); as err) {
+        <p class="parse-error">Message invalide pour {{ desc().input.name }} : {{ err }}</p>
+      }
+      <div class="composer-foot">
+        <span class="muted small">Ctrl + Entrée</span>
+        <button class="btn primary" [disabled]="sending()" (click)="send()">
+          @if (sending()) { <span class="spinner"></span> } Envoyer {{ desc().name }}()
+        </button>
+      </div>
+    </div>
+
+    <!-- Résultat -->
+    <div class="card result">
+      @if (current(); as c) {
+        <div class="card-head">
+          <h3>{{ c.method }}()</h3>
+          <span class="status" [attr.data-ok]="c.status === 'OK'">{{ c.status }} ({{ c.statusCode }})</span>
+          <span class="muted small push">{{ c.ms }} ms · {{ time(c.at) }}</span>
+        </div>
+
+        @if (c.message) {
+          <pre class="code is-error">grpc-status: {{ c.statusCode }}
+grpc-message: {{ c.message }}</pre>
+        }
+
+        <div class="wire-block">
+          <div class="wire-title">→ {{ c.method }}Request</div>
+          <div class="size-row">
+            <span>JSON <b>{{ c.request.jsonBytes }}</b> o</span>
+            <span class="size-track"><span class="size-fill" [style.width.%]="bar(c, 'request')"></span></span>
+            <span>Protobuf <b>{{ c.request.protoBytes.length }}</b> o</span>
+            <span class="gain">−{{ gain(c, 'request') }} %</span>
+          </div>
+          <div class="frame">
+            <span class="frame-h" title="indicateur (1 octet) + longueur (4 octets)">{{ frameHeader(c.request.protoBytes.length) }}</span>
+            <span class="frame-b">{{ hex(c.request.protoBytes) || '(message vide : 0 octet)' }}</span>
+          </div>
+        </div>
+
+        @if (c.response; as r) {
+          <div class="wire-block">
+            <div class="wire-title">← réponse</div>
+            <div class="size-row">
+              <span>JSON <b>{{ r.jsonBytes }}</b> o</span>
+              <span class="size-track"><span class="size-fill" [style.width.%]="bar(c, 'response')"></span></span>
+              <span>Protobuf <b>{{ r.protoBytes.length }}</b> o</span>
+              <span class="gain">−{{ gain(c, 'response') }} %</span>
+            </div>
+            <pre class="code">{{ r.json }}</pre>
+            <div class="frame">
+              <span class="frame-h">{{ frameHeader(r.protoBytes.length) }}</span>
+              <span class="frame-b">{{ hex(r.protoBytes, 120) }}</span>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="empty">
+          <div class="empty-mark">⇄</div>
+          <h3>Aucun échange pour l’instant</h3>
+          <p>Envoyez une requête ou utilisez l’annuaire : chaque appel unaire apparaît ici.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="labo-bottom">
+    <!-- Journal -->
+    <div class="card journal">
+      <div class="card-head"><h3>Journal des appels unaires</h3><span class="muted small">{{ calls().length }}</span></div>
+      <table class="table">
+        <thead><tr><th>Heure</th><th>Méthode</th><th>Statut</th><th class="num">Protobuf</th><th class="num">Durée</th></tr></thead>
+        <tbody>
+          @for (c of calls(); track c.seq) {
+            <tr class="clickable" [class.is-selected]="current()?.seq === c.seq" (click)="selected.set(c.seq)">
+              <td class="mono">{{ time(c.at) }}</td>
+              <td class="mono">{{ c.method }}</td>
+              <td><span class="status" [attr.data-ok]="c.status === 'OK'">{{ c.status }}</span></td>
+              <td class="num mono">{{ c.response?.protoBytes?.length ?? 0 }} o</td>
+              <td class="num mono">{{ c.ms }} ms</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="muted">Le journal est vide.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Les 4 types d'appels -->
+    <div class="card kinds">
+      <div class="card-head"><h3>Les 4 types d’appels gRPC</h3></div>
+      <ul class="kind-list">
+        <li><b>Unaire</b><code>Ajouter · Lister · Rechercher · Modifier · Supprimer</code><span class="ok">navigateur ✓</span></li>
+        <li><b>Streaming serveur</b><code>Suivre → stream</code><span class="ok">navigateur ✓ (panneau de droite)</span></li>
+        <li><b>Streaming client</b><code>stream → Importer</code><span class="no">Postman ✓ · navigateur ✗</span></li>
+        <li><b>Bidirectionnel</b><code>stream ⇄ RechercherEnFlux</code><span class="no">Postman ✓ · navigateur ✗</span></li>
+      </ul>
+      <p class="muted small">gRPC-Web ne permet pas encore au navigateur d’envoyer un flux : ces deux méthodes se testent dans Postman.</p>
+
+      <div class="server-url">
+        <label for="url">Serveur gRPC-Web</label>
+        <div class="url-row">
+          <input id="url" [value]="url()" (input)="url.set(value($event))" />
+          <button class="btn sm" (click)="applyUrl()">Appliquer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,55 @@
+@if (ui.editor().open) {
+  <div class="modal-root">
+    <div class="scrim" (click)="!saving() && ui.closeEditor()"></div>
+    <div class="modal editor" role="dialog" aria-modal="true" [attr.aria-label]="editing() ? 'Modifier la fiche' : 'Nouvelle personne'">
+      <header class="modal-head">
+        <app-avatar [nom]="form().nom || '+'" [prenom]="form().prenom" [size]="48" />
+        <div class="modal-heading">
+          <div class="kicker">rpc {{ editing() ? 'Modifier(ModifierRequest)' : 'Ajouter(AjouterRequest)' }} → Personne</div>
+          <h2>{{ title() }}</h2>
+        </div>
+        <button class="icon-btn" (click)="ui.closeEditor()" [disabled]="saving()" aria-label="Fermer">×</button>
+      </header>
+
+      <form class="editor-grid" (ngSubmit)="submit()" novalidate>
+        <div class="editor-form">
+          @for (f of fields; track f.key) {
+            <label class="field" [class.is-wide]="f.wide" [class.has-error]="errors()[f.key]">
+              <span class="field-label">{{ f.label }}</span>
+              <input
+                [type]="f.type"
+                [name]="f.key"
+                [ngModel]="form()[f.key]"
+                (ngModelChange)="set(f.key, $event)"
+                [placeholder]="f.placeholder"
+                [attr.max]="f.type === 'date' ? today : null"
+                autocomplete="off"
+              />
+              @if (errors()[f.key]; as err) {
+                <span class="field-error">{{ err }}</span>
+              }
+            </label>
+          }
+        </div>
+
+        <div class="editor-wire">
+          <div class="wire-head">
+            <span class="kicker">message envoyé</span>
+            <span class="wire-sizes">
+              <b>{{ preview().protoBytes.length }}</b> octets en Protobuf · {{ preview().jsonBytes }} en JSON
+            </span>
+          </div>
+          <pre class="code">{{ preview().json }}</pre>
+        </div>
+
+        <footer class="modal-foot">
+          <button type="button" class="btn ghost" (click)="ui.closeEditor()" [disabled]="saving()">Annuler</button>
+          <button type="submit" class="btn primary" [disabled]="saving()">
+            @if (saving()) { <span class="spinner"></span> }
+            {{ editing() ? 'Enregistrer' : 'Ajouter la personne' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

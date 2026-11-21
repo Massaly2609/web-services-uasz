@@ -1,0 +1,116 @@
+// =====================================================================
+//  Contrat gRPC du TP « Gestion des personnes »
+//  Exposé gRPC — Medoune MASSALY & Alioune DIOUF — Master 1 UASZ
+//
+//  Ce fichier est l'IDL (Interface Definition Language) du service :
+//  il est partagé par le serveur Java et le client Angular, qui génèrent
+//  chacun leur code à partir de lui (protoc / buf).
+// =====================================================================
+syntax = "proto3";
+
+package uasz.personne.v1;
+
+option java_multiple_files = true;
+option java_package = "sn.uasz.grpc.proto";
+option java_outer_classname = "PersonneProto";
+
+// ---------------------------------------------------------------------
+//  Service : les 5 méthodes du TP + 3 méthodes de streaming
+// ---------------------------------------------------------------------
+service PersonneService {
+  // --- Appels unaires (1 requête → 1 réponse) : le CRUD du TP ---
+  rpc Ajouter(AjouterRequest) returns (Personne);
+  rpc Lister(ListerRequest) returns (ListerResponse);
+  rpc Rechercher(RechercherRequest) returns (Personne);
+  rpc Modifier(ModifierRequest) returns (Personne);
+  rpc Supprimer(SupprimerRequest) returns (SupprimerResponse);
+
+  // --- Streaming serveur (1 requête → flux de réponses) ---
+  // Le client s'abonne et reçoit chaque ajout / modification / suppression.
+  rpc Suivre(SuivreRequest) returns (stream EvenementPersonne);
+
+  // --- Streaming client (flux de requêtes → 1 réponse) ---
+  // Import en lot : le client envoie N personnes, le serveur répond un bilan.
+  rpc Importer(stream AjouterRequest) returns (ImportResume);
+
+  // --- Streaming bidirectionnel (flux ↔ flux) ---
+  // Chaque identifiant envoyé reçoit immédiatement son résultat.
+  rpc RechercherEnFlux(stream RechercherRequest) returns (stream ResultatRecherche);
+}
+
+// ---------------------------------------------------------------------
+//  Messages
+// ---------------------------------------------------------------------
+
+message Personne {
+  int64 id = 1;
+  string nom = 2;
+  string prenom = 3;
+  string date_naissance = 4; // format ISO yyyy-MM-dd
+  string adresse = 5;
+  string telephone = 6;
+}
+
+message AjouterRequest {
+  string nom = 1;
+  string prenom = 2;
+  string date_naissance = 3;
+  string adresse = 4;
+  string telephone = 5;
+}
+
+message ListerRequest {}
+
+message ListerResponse {
+  repeated Personne personnes = 1;
+  int32 total = 2;
+}
+
+message RechercherRequest {
+  int64 id = 1;
+}
+
+message ModifierRequest {
+  int64 id = 1;
+  string nom = 2;
+  string prenom = 3;
+  string date_naissance = 4;
+  string adresse = 5;
+  string telephone = 6;
+}
+
+message SupprimerRequest {
+  int64 id = 1;
+}
+
+message SupprimerResponse {
+  bool supprime = 1;
+}
+
+message SuivreRequest {}
+
+message EvenementPersonne {
+  enum Type {
+    TYPE_INCONNU = 0;
+    AJOUT = 1;
+    MODIFICATION = 2;
+    SUPPRESSION = 3;
+    ABONNEMENT = 4; // premier message du flux : l'abonnement est ouvert
+  }
+  Type type = 1;
+  Personne personne = 2;
+  string horodatage = 3; // ISO-8601, ex. 2026-12-09T10:15:30Z
+}
+
+message ImportResume {
+  int32 ajoutees = 1;
+  int32 rejetees = 2;
+  repeated int64 ids = 3;
+  repeated string erreurs = 4;
+}
+
+message ResultatRecherche {
+  int64 id = 1;
+  bool trouve = 2;
+  Personne personne = 3;
+}

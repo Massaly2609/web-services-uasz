@@ -1,0 +1,87 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <div class="kicker">rpc Lister(ListerRequest) → ListerResponse</div>
+      <h1>Annuaire</h1>
+      <p class="lead">
+        Chargé une fois par <code>Lister()</code>, puis tenu à jour en direct par le flux <code>Suivre()</code>.
+      </p>
+    </div>
+    <button class="btn primary" (click)="ui.openCreate()"><span class="plus">+</span> Nouvelle personne</button>
+  </header>
+
+  <div class="metrics">
+    <div class="metric">
+      <span class="metric-label">Personnes</span>
+      <span class="metric-value">{{ store.loading() && !store.total() ? '—' : store.total() }}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Âge moyen</span>
+      <span class="metric-value">{{ stats().age }}<small> ans</small></span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Villes</span>
+      <span class="metric-value">{{ stats().villes }}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Dernière mise à jour</span>
+      <span class="metric-value mono-sm">{{ store.lastSync() ? time(store.lastSync()!) : '—' }}</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label class="search">
+      <span class="search-icon">⌕</span>
+      <input [value]="query()" (input)="query.set($any($event.target).value)"
+             placeholder="Filtrer par nom, ville, téléphone, id…" aria-label="Filtrer l’annuaire" />
+    </label>
+    <div class="segmented" role="group" aria-label="Trier">
+      <button [class.is-active]="sort() === 'recent'" (click)="sort.set('recent')">Récents</button>
+      <button [class.is-active]="sort() === 'nom'" (click)="sort.set('nom')">Nom A→Z</button>
+    </div>
+    <button class="btn" (click)="store.refresh()" [disabled]="store.loading()">
+      <span [class.spin]="store.loading()">↻</span> Lister()
+    </button>
+  </div>
+
+  @if (store.loading() && !store.total()) {
+    <div class="grid">
+      @for (i of [1, 2, 3, 4]; track i) { <div class="card skeleton"></div> }
+    </div>
+  } @else if (!rows().length) {
+    <div class="empty">
+      <div class="empty-mark">∅</div>
+      <h3>{{ query() ? 'Aucun résultat pour « ' + query() + ' »' : 'Aucune personne enregistrée' }}</h3>
+      <p>{{ query() ? 'Le filtre s’applique localement.' : 'La base H2 est en mémoire : elle repart à zéro à chaque démarrage.' }}</p>
+      @if (!query()) {
+        <button class="btn primary" (click)="ui.openCreate()">+ Ajouter une personne</button>
+      }
+    </div>
+  } @else {
+    <div class="grid">
+      @for (p of rows(); track p.id) {
+        <article class="card person" [attr.data-flash]="flash(p)">
+          <div class="person-top">
+            <app-avatar [nom]="p.nom" [prenom]="p.prenom" [size]="46" />
+            <div class="person-id">
+              <h3>{{ name(p) }}</h3>
+              <span class="tag">id: {{ p.id }}</span>
+            </div>
+            @if (age(p.dateNaissance) !== null) {
+              <span class="age">{{ age(p.dateNaissance) }} ans</span>
+            }
+          </div>
+          <dl class="facts">
+            <div><dt>Naissance</dt><dd>{{ date(p.dateNaissance) }}</dd></div>
+            <div><dt>Adresse</dt><dd>{{ p.adresse }}</dd></div>
+            <div><dt>Téléphone</dt><dd class="mono">{{ phone(p.telephone) }}</dd></div>
+          </dl>
+          <div class="person-actions">
+            <button class="btn sm" (click)="ui.openEdit(p)">Modifier</button>
+            <button class="btn sm danger-ghost" (click)="ui.toDelete.set(p)" [attr.aria-label]="'Supprimer ' + name(p)">Supprimer</button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

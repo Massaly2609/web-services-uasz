@@ -1,0 +1,9 @@
+# Génération du code TypeScript à partir du contrat partagé ../proto/personne.proto
+#   npm run generate
+version: v2
+inputs:
+  - directory: ../proto
+plugins:
+  - local: protoc-gen-es
+    out: src/app/gen
+    opt: target=ts

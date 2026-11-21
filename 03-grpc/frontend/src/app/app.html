@@ -1,0 +1,59 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#/annuaire" (click)="$event.preventDefault(); ui.go('annuaire')">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="38" height="38">
+          <path d="M20 3 35 11.5v17L20 37 5 28.5v-17Z" fill="currentColor" />
+          <text x="20" y="25" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="IBM Plex Mono, monospace">g</text>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">Annuaire gRPC</span>
+        <span class="brand-sub">uasz.personne.v1.PersonneService</span>
+      </span>
+    </a>
+
+    <nav class="tabs" aria-label="Navigation principale">
+      @for (t of tabs; track t.id) {
+        <button class="tab" [class.is-active]="ui.page() === t.id" (click)="ui.go(t.id)"
+                [attr.aria-current]="ui.page() === t.id ? 'page' : null">
+          {{ t.label }}
+        </button>
+      }
+    </nav>
+
+    <button class="conn" [attr.data-status]="status()" (click)="store.refresh()" title="Relancer Lister()">
+      <i></i>
+      <span class="conn-proto">gRPC-Web</span>
+      <span class="conn-host">{{ host }}</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <main class="main">
+    @if (store.online() === false) {
+      <div class="offline" role="alert">
+        <b>Le serveur gRPC ne répond pas ({{ host }}).</b>
+        <span>Lancez <code>GrpcApplication</code> dans <code>03-grpc/backend</code>, puis réessayez.</span>
+        <button class="btn sm" (click)="store.refresh()">Réessayer</button>
+      </div>
+    }
+
+    @switch (ui.page()) {
+      @case ('annuaire') { <app-annuaire /> }
+      @case ('recherche') { <app-recherche /> }
+      @case ('labo') { <app-labo /> }
+    }
+  </main>
+  <app-flux-panel />
+</div>
+
+<footer class="footer">
+  <span>Exposé gRPC · Medoune MASSALY &amp; Alioune DIOUF · Master 1 Web Services · UASZ</span>
+  <span class="mono">Angular · Connect-ES · gRPC-Web → Armeria · Spring Boot</span>
+</footer>
+
+<app-personne-dialog />
+<app-confirm-dialog />
+<app-toast-stack />
