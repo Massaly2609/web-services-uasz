@@ -35,6 +35,7 @@ web-services-uasz/
 │   ├── backend/     # Spring Boot + Armeria — serveur gRPC / gRPC-Web
 │   ├── frontend/    # client Angular (Connect-ES, gRPC-Web)
 │   ├── docs/        # énoncé du TP pour les autres groupes
+│   ├── expose/      # diaporama de l'exposé (LaTeX Beamer, PDF)
 │   └── README.md
 ├── docs/            # consignes des exposés
 └── .github/workflows/ci.yml   # build des backends et des frontends à chaque push

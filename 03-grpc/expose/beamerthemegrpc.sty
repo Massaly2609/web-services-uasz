@@ -1,0 +1,200 @@
+% =====================================================================
+%  Thème Beamer de l'exposé gRPC — Master 1 Web Services, UASZ
+%  Couleurs reprises du client Angular : sarcelle gRPC, bleu nuit, ambre.
+% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{beamerthemegrpc}[2026/11/22 Theme Beamer gRPC]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage[sfdefault]{plex-sans}
+\RequirePackage[scale=0.9]{plex-mono}
+\RequirePackage{amssymb}
+\RequirePackage{fontawesome5}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{tabularx}
+\RequirePackage{colortbl}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,shapes.misc,
+  backgrounds,fit,decorations.pathreplacing,shadows.blur,babel}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{listings}
+
+% ---------------------------------------------------------------- couleurs
+\definecolor{Ink}{HTML}{0D1B2A}
+\definecolor{Ink2}{HTML}{3D4F63}
+\definecolor{Muted}{HTML}{778596}
+\definecolor{Line}{HTML}{DBE2EA}
+\definecolor{Paper}{HTML}{F4F7FA}
+\definecolor{Teal}{HTML}{0F8A8F}
+\definecolor{TealDark}{HTML}{0B6E72}
+\definecolor{TealSoft}{HTML}{E0F2F2}
+\definecolor{TealGlow}{HTML}{7FE0D8}
+\definecolor{Amber}{HTML}{C96D07}
+\definecolor{AmberLight}{HTML}{F2B45C}
+\definecolor{AmberSoft}{HTML}{FDF0DC}
+\definecolor{Rouge}{HTML}{C0392B}
+\definecolor{RougeSoft}{HTML}{FBE8E6}
+\definecolor{Vert}{HTML}{15804A}
+\definecolor{VertSoft}{HTML}{E2F3E9}
+\definecolor{Violet}{HTML}{6D5BD0}
+\definecolor{VioletSoft}{HTML}{ECE9FB}
+\definecolor{Navy}{HTML}{0B1620}
+\definecolor{Navy2}{HTML}{13222E}
+\definecolor{Navy3}{HTML}{1D2F3D}
+\definecolor{CodeBg}{HTML}{0E1A24}
+\definecolor{CodeText}{HTML}{D7E5EA}
+\definecolor{CodeMuted}{HTML}{6F8796}
+\definecolor{CodeGreen}{HTML}{86E5A9}
+
+% ---------------------------------------------------------------- beamer
+\setbeamercolor{normal text}{fg=Ink,bg=white}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{structure}{fg=Teal}
+\setbeamercolor{alerted text}{fg=Amber}
+\setbeamercolor{example text}{fg=Vert}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\small,series=\mdseries}
+\setbeamerfont{kicker}{size=\scriptsize,family=\ttfamily}
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=1cm,text margin right=1cm}
+
+\setbeamertemplate{itemize item}{\raisebox{0.2em}{\tikz\fill[Teal](0,0)rectangle(0.4em,0.4em);}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.24em}{\tikz\draw[Teal,line width=0.6pt](0,0)rectangle(0.32em,0.32em);}}
+\setbeamertemplate{enumerate item}{%
+  \tikz[baseline=(n.base)]\node[fill=Teal,text=white,circle,inner sep=1.1pt,minimum size=1.15em,
+    font=\scriptsize\bfseries](n){\insertenumlabel};}
+\setlength{\leftmargini}{1.25em}
+
+% Titre de diapo : petit « sur-titre » (section) en mono + titre en gras
+\makeatletter
+\setbeamertemplate{frametitle}{%
+  \vspace*{0.42cm}%
+  \ifnum\value{section}>0
+    {\usebeamerfont{kicker}\color{Teal}0\insertsectionnumber\enspace\textbar\enspace\insertsectionhead\par}%
+    \vspace{0.06cm}%
+  \fi
+  {\usebeamerfont{frametitle}\color{Ink}\insertframetitle\par}%
+  \ifx\insertframesubtitle\@empty\else
+    \vspace{0.04cm}{\usebeamerfont{framesubtitle}\color{Muted}\insertframesubtitle\par}%
+  \fi
+  \vspace*{0.08cm}%
+}
+\makeatother
+
+% Pied de page : auteurs, numéro et barre de progression
+\setbeamertemplate{footline}{%
+  \leavevmode
+  \hbox to \paperwidth{%
+    \hspace*{1cm}{\color{Muted}\tiny\insertshortauthor\enspace\textperiodcentered\enspace\insertshorttitle}\hfill
+    {\color{Muted}\tiny\ttfamily\insertframenumber\,/\,\inserttotalframenumber}\hspace*{1cm}}%
+  \par\vspace{0.16cm}%
+  \hbox{\begin{tikzpicture}
+    \fill[Line] (0,0) rectangle (\paperwidth,1.6pt);
+    \pgfmathsetlengthmacro{\progres}{min(\insertframenumber/max(\inserttotalframenumber,1),1)*\paperwidth}
+    \fill[Teal] (0,0) rectangle (\progres,1.6pt);
+  \end{tikzpicture}}%
+}
+
+% ---------------------------------------------------------------- TikZ
+\tikzset{
+  >={Stealth[length=2.4mm,width=1.8mm]},
+  % surcouches (animations pas à pas)
+  invisible/.style={opacity=0,text opacity=0,fill opacity=0,draw opacity=0},
+  alt/.code args={<#1>#2#3}{\alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}}},
+  visible on/.style={alt={#1{}{invisible}}},
+  % boîtes
+  box/.style={draw=Line,line width=0.8pt,fill=white,rounded corners=4pt,inner sep=5pt,
+    align=center,font=\footnotesize},
+  tealbox/.style={box,draw=Teal,fill=TealSoft,text=TealDark},
+  amberbox/.style={box,draw=Amber,fill=AmberSoft,text=Ink},
+  redbox/.style={box,draw=Rouge,fill=RougeSoft,text=Ink},
+  greenbox/.style={box,draw=Vert,fill=VertSoft,text=Ink},
+  violetbox/.style={box,draw=Violet,fill=VioletSoft,text=Ink},
+  darkbox/.style={box,draw=Navy3,fill=Navy,text=white},
+  zone/.style={draw=Line,line width=0.8pt,dashed,rounded corners=8pt,fill=Paper},
+  active/.style={draw=Amber,line width=1.6pt,fill=AmberSoft,text=Ink},
+  highlight on/.style={alt={#1{active}{}}},
+  % paquets de données qui circulent
+  packet/.style={draw=Amber,fill=AmberLight,text=Ink,rounded corners=3pt,
+    font=\ttfamily\scriptsize\bfseries,inner sep=3pt,
+    blur shadow={shadow blur steps=6,shadow xshift=0.5pt,shadow yshift=-0.8pt,shadow opacity=25}},
+  tpacket/.style={packet,draw=Teal,fill=TealGlow},
+  gpacket/.style={packet,draw=Vert,fill=VertSoft},
+  rpacket/.style={packet,draw=Rouge,fill=RougeSoft},
+  % flèches
+  flow/.style={->,line width=1.1pt,draw=Teal},
+  flowback/.style={->,line width=1.1pt,draw=Amber},
+  thin flow/.style={->,line width=0.7pt,draw=Muted},
+  stream/.style={line width=1.4pt,draw=Teal,dash pattern=on 4pt off 2.5pt},
+  small/.style={font=\scriptsize\color{Muted}},
+  tag/.style={font=\ttfamily\tiny,fill=TealSoft,text=TealDark,rounded corners=2pt,inner sep=1.8pt},
+  hexa/.style={regular polygon,regular polygon sides=6,minimum size=#1,inner sep=0pt},
+}
+
+% version polycopié : pas de surlignage d'étape (toutes les étapes sont fusionnées)
+\mode<handout>{\tikzset{highlight on/.style={}}}
+
+% ---------------------------------------------------------------- boîtes de texte
+\tcbset{
+  gcard/.style={enhanced,colback=white,colframe=Line,boxrule=0.8pt,arc=5pt,halign=left,
+    left=7pt,right=7pt,top=5pt,bottom=5pt,fontupper=\small,before skip=2pt,after skip=4pt},
+  gteal/.style={gcard,colback=TealSoft,colframe=Teal!55},
+  gamber/.style={gcard,colback=AmberSoft,colframe=Amber!55},
+  gred/.style={gcard,colback=RougeSoft,colframe=Rouge!50},
+  ggreen/.style={gcard,colback=VertSoft,colframe=Vert!50},
+  gdark/.style={gcard,colback=Navy,colframe=Navy,coltext=white},
+}
+\newtcolorbox{carte}[1][]{gcard,#1}
+% en-tête de carte : icône + titre
+\newcommand{\cartetitre}[2]{{\color{Teal}#1}\enspace{\bfseries #2}\par\vspace{2pt}}
+
+% ---------------------------------------------------------------- code
+\lstdefinestyle{gbase}{
+  basicstyle=\ttfamily\scriptsize\color{CodeText},
+  keywordstyle=\color{AmberLight}\bfseries,
+  keywordstyle=[2]\color{TealGlow},
+  commentstyle=\color{CodeMuted}\itshape,
+  stringstyle=\color{CodeGreen},
+  numbers=none,showstringspaces=false,breaklines=true,columns=fullflexible,
+  keepspaces=true,upquote=true,aboveskip=0pt,belowskip=0pt,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ê}{{\^e}}1 {ç}{{\c{c}}}1
+           {É}{{\'E}}1 {ô}{{\^o}}1 {û}{{\^u}}1 {î}{{\^i}}1 {ù}{{\`u}}1 {ï}{{\"i}}1
+           {→}{{$\rightarrow$}}1 {←}{{$\leftarrow$}}1 {…}{{\ldots}}1 {—}{{---}}1
+           {«}{{\guillemotleft}}1 {»}{{\guillemotright}}1 {’}{{'}}1
+}
+\lstdefinelanguage{proto}{
+  morekeywords={syntax,package,option,service,rpc,returns,stream,message,repeated,enum,import,reserved,oneof,map},
+  morekeywords=[2]{string,int32,int64,bool,double,float,bytes,uint32,uint64},
+  sensitive=true,morecomment=[l]{//},morestring=[b]"
+}
+\lstdefinelanguage{TS}{
+  morekeywords={const,let,await,async,for,of,new,return,import,from,export,function,if,else,class},
+  morekeywords=[2]{createClient,createGrpcWebTransport,PersonneService},
+  sensitive=true,morecomment=[l]{//},morestring=[b]',morestring=[b]"
+}
+\lstdefinestyle{proto}{style=gbase,language=proto}
+\lstdefinestyle{java}{style=gbase,language=Java,morekeywords=[2]{StreamObserver,Status,Personne,AjouterRequest,EvenementPersonne}}
+\lstdefinestyle{ts}{style=gbase,language=TS}
+\lstdefinestyle{plain}{style=gbase}
+
+\newtcblisting{code}[2][]{enhanced,listing only,colback=CodeBg,colframe=CodeBg,arc=5pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,boxrule=0pt,before skip=2pt,after skip=4pt,
+  listing options={style=#2},#1}
+% variante compacte pour les extraits longs
+\newtcblisting{codetiny}[2][]{enhanced,listing only,colback=CodeBg,colframe=CodeBg,arc=5pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,boxrule=0pt,before skip=2pt,after skip=4pt,
+  listing options={style=#2,basicstyle=\ttfamily\tiny\color{CodeText}},#1}
+
+% pas de césure sur les diapos : plus lisible
+\AtBeginDocument{\hyphenpenalty=10000\exhyphenpenalty=10000}
+
+% ---------------------------------------------------------------- petites commandes
+\newcommand{\mono}[1]{{\ttfamily #1}}
+\newcommand{\pill}[2][TealSoft]{\tikz[baseline=(p.base)]\node[fill=#1,rounded corners=2pt,inner sep=2pt,font=\ttfamily\scriptsize](p){#2};}
+\newcommand{\octets}[1]{{\ttfamily\color{Amber}#1}}
+\newcommand{\ok}{{\color{Vert}\faCheck}}
+\newcommand{\ko}{{\color{Rouge}\faTimes}}
+\newcommand{\moyen}{{\color{Amber}\faAdjust}}
+
+\endinput

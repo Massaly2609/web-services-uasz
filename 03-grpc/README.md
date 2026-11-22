@@ -23,6 +23,7 @@ un client **Angular** (gRPC-Web) et un énoncé de TP pour les autres groupes.
 | [`backend/`](backend/)     | Spring Boot 4.1, Java 21, Armeria 1.43 (gRPC + gRPC-Web), JPA, H2 — 7 tests d’intégration |
 | [`frontend/`](frontend/)   | Angular 21, Connect-ES 2, signaux — voir son [README](frontend/README.md)            |
 | [`docs/TP_gRPC.md`](docs/TP_gRPC.md) | **Énoncé du TP** pour les autres groupes (requêtes Postman, erreurs, streaming)   |
+| [`expose/`](expose/)       | **Diaporama de l'exposé** (LaTeX Beamer) : [`expose-grpc.pdf`](expose/expose-grpc.pdf), version polycopié |
 
 ## Lancer
 
